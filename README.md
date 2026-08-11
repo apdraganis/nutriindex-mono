@@ -1,19 +1,41 @@
 # NutriIndex
 
-Scan a food product barcode, enter what you paid, and see nutrition cost indices in EUR:
+A personal side project for answering a simple question at the supermarket: **how much am I paying per unit of nutrition?**
+
+Point the camera at a barcode (or type it in), enter what you paid, and get two indices in EUR:
 
 - cost per 100 kcal
 - cost per 10g protein
 
-## Stack
+Product nutrition comes from [Open Food Facts](https://world.openfoodfacts.org/). When data is missing, you can fill in kcal and protein manually.
 
-- `NutriIndex.Core` — shared models and index calculations
-- `NutriIndex.Api` — ASP.NET Core Minimal API (Open Food Facts proxy + calculate endpoint)
-- `NutriIndex.Web` — Blazor WebAssembly PWA with camera barcode scanning
+Not a nutrition database — a quick calculator for price-per-nutrition while shopping.
+
+## Architecture
+
+Single-repo .NET 7 monolith with three projects:
+
+| Project | Role |
+|---------|------|
+| `NutriIndex.Core` | Shared models and index math |
+| `NutriIndex.Api` | Minimal API — Open Food Facts proxy, calculate endpoint, hosts the WASM app in production |
+| `NutriIndex.Web` | Blazor WebAssembly PWA with camera barcode scanning |
+
+In production, the API serves both `/api/*` and the static Blazor app from one origin (no CORS). Local development runs API and web on separate ports with CORS enabled.
+
+```
+Browser (PWA)
+    │  barcode scan + price input
+    ▼
+NutriIndex.Api
+    │  product lookup
+    ▼
+Open Food Facts API
+```
 
 ## Prerequisites
 
-- .NET 7 SDK
+- [.NET 7 SDK](https://dotnet.microsoft.com/download/dotnet/7.0)
 
 ## Run locally
 
@@ -29,55 +51,19 @@ In another terminal, start the web app:
 dotnet run --project src/NutriIndex.Web
 ```
 
-Open `http://localhost:5210`.
+Open `http://localhost:5210`. The web app calls the API at `http://localhost:5234` (see `src/NutriIndex.Web/wwwroot/appsettings.Development.json`).
 
-The web app calls the API at `http://localhost:5234` (see `src/NutriIndex.Web/wwwroot/appsettings.Development.json`).
+**Try it:** tap **Scan barcode** or enter `3017620422003` (Nutella), then set price and quantity.
 
-## Test
+## Tests
 
 ```bash
 dotnet test
 ```
 
-## Try it
+## Docker
 
-1. Tap **Scan barcode** (or enter a barcode manually).
-2. Example barcode: `3017620422003` (Nutella).
-3. Enter price and quantity — indices update live.
-
-## Deploy to Fly.io
-
-Single app: API + Blazor PWA on the same domain (HTTPS included).
-
-### Prerequisites
-
-- [Fly.io account](https://fly.io/app/sign-up)
-- [flyctl installed](https://fly.io/docs/hands-on/install-flyctl/)
-
-### First deploy
-
-```bash
-fly auth login
-fly launch --no-deploy
-```
-
-When prompted, keep the generated app name or pick your own, then update `app` in `fly.toml` to match.
-
-```bash
-fly deploy
-```
-
-Your app will be live at `https://<app-name>.fly.dev`.
-
-### Verify
-
-```bash
-curl https://<app-name>.fly.dev/health
-```
-
-Open the URL on your phone to test barcode scanning (requires HTTPS — Fly provides this automatically).
-
-### Local Docker test
+Build and run the combined API + PWA image:
 
 ```bash
 docker build -t nutriindex .
@@ -86,14 +72,14 @@ docker run -p 8080:8080 nutriindex
 
 Open `http://localhost:8080`.
 
-### Notes
+## Camera & PWA
 
-- Production serves API and PWA from the same origin — no CORS config needed.
-- Local dev still uses separate API (port 5234) and Web (port 5210) with CORS enabled.
-- Fly free tier may sleep idle machines; first request after idle can take a few seconds.
+Barcode scanning uses the device camera via `getUserMedia`. Browsers only allow that on **secure contexts** — `https://` or `http://localhost`. If you deploy without HTTPS, the scanner will fail and manual entry still works.
 
-## Next steps
+The app is installable as a PWA (`manifest.json`, service worker). Icons and offline shell are included; product lookup still needs network access.
 
-- Save scanned products per user
-- Rankings and history
-- SQLite persistence
+## Roadmap
+
+- Persist scans per user (SQLite)
+- History and rankings
+- Better handling of incomplete Open Food Facts data

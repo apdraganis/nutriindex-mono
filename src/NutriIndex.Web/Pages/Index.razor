@@ -135,9 +135,12 @@
             await Scanner.StartAsync("barcode-video", OnBarcodeScannedAsync);
             _scanning = true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            _error = "Could not access the camera. Enter the barcode manually.";
+            _scanning = false;
+            _error = string.IsNullOrWhiteSpace(ex.Message)
+                ? "Could not access the camera. Enter the barcode manually."
+                : ex.Message;
         }
     }
 
