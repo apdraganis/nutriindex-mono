@@ -1,0 +1,192 @@
+:root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1f2933;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --danger: #b91c1c;
+    --warning: #92400e;
+    --border: #e5e7eb;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.layout, .page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.hero h1 {
+    margin: 0 0 0.5rem;
+    font-size: 2rem;
+}
+
+.hero p {
+    margin: 0 0 1.5rem;
+    color: var(--muted);
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 1.1rem;
+}
+
+.scanner video {
+    width: 100%;
+    border-radius: 8px;
+    background: #111;
+    min-height: 180px;
+}
+
+.scanner-actions {
+    margin-top: 0.75rem;
+}
+
+.field {
+    margin-top: 1rem;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+}
+
+.field input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.inline {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.inline input {
+    flex: 1;
+}
+
+.btn {
+    border: none;
+    background: var(--accent);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.btn.secondary {
+    background: #374151;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.product {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.product img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid var(--border);
+}
+
+.product h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+}
+
+.muted {
+    color: var(--muted);
+    margin: 0;
+}
+
+.error {
+    color: var(--danger);
+    margin-top: 0.75rem;
+}
+
+.warning {
+    color: var(--warning);
+    margin-top: 0.75rem;
+}
+
+.results {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.result-card .label {
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.result-card .value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+.loading-progress {
+    display: none;
+}

@@ -1,0 +1,79 @@
+## Build output
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+publish/
+artifacts/
+*.dll
+*.exe
+*.pdb
+*.cache
+
+## NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+
+## .NET tooling
+.dotnet/
+.tools/
+*.DotSettings.user
+
+## Test & coverage
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+*.lcov
+
+## User-specific / local config (never commit secrets here)
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+appsettings.*.local.json
+**/secrets.json
+.env
+.env.*
+!.env.example
+
+## IDE — Visual Studio
+.vs/
+*.VC.db
+*.VC.VC.opendb
+
+## IDE — JetBrains (Rider / IntelliJ)
+.idea/
+*.iml
+
+## IDE — VS Code (local workspace state; commit shared settings separately if needed)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+## OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+## Logs & temp
+*.log
+*.tmp
+*.temp
+*.swp
+*~
+
+## Deployment / platform local state
+.fly/
+render.yaml.local
