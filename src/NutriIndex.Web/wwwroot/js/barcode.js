@@ -1,6 +1,7 @@
 window.barcodeScanner = (function () {
     let reader = null;
     let controls = null;
+    let detected = false;
 
     function releaseVideo(videoElementId) {
         const video = document.getElementById(videoElementId);
@@ -14,6 +15,7 @@ window.barcodeScanner = (function () {
 
     async function start(videoElementId, dotNetRef) {
         await stop(videoElementId);
+        detected = false;
 
         if (!window.ZXingBrowser) {
             throw new Error("Barcode scanner library failed to load. Reload the page and try again.");
@@ -37,9 +39,21 @@ window.barcodeScanner = (function () {
         reader = codeReader;
 
         const onResult = (result) => {
-            if (result) {
-                dotNetRef.invokeMethodAsync("OnBarcodeDetected", result.getText());
+            if (!result || detected) {
+                return;
             }
+
+            detected = true;
+            const barcode = result.getText();
+            console.info("[NutriIndex] barcode detected", barcode);
+
+            // Notify Blazor, then stop the camera. Do not await the .NET call
+            // through product lookup — HTTP uses JS interop and nested awaits
+            // can stall until another UI event (e.g. clicking Look up).
+            void dotNetRef
+                .invokeMethodAsync("OnBarcodeDetected", barcode)
+                .catch((error) => console.error("[NutriIndex] barcode callback failed", error));
+            void stop(videoElementId);
         };
 
         const constraints = {

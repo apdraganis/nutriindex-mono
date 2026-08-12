@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Server;
 using Microsoft.Extensions.Caching.Memory;
 using NutriIndex.Api.Services;
+using NutriIndex.Core;
 using NutriIndex.Core.Models;
 using NutriIndex.Core.Services;
 
@@ -65,7 +66,10 @@ app.MapPost("/api/calculate", (CalculateRequest request) =>
     }
 });
 
-app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/health", () => Results.Ok(new { status = "ok", build = BuildInfo.BuildId }));
+app.MapGet("/version", () => Results.Ok(new { app = "NutriIndex", build = BuildInfo.BuildId }));
 app.MapFallbackToFile("index.html");
+
+Console.WriteLine($"[NutriIndex] API started · build {BuildInfo.BuildId}");
 
 app.Run();

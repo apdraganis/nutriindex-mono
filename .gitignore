@@ -77,3 +77,6 @@ Thumbs.db
 ## Deployment / platform local state
 .fly/
 render.yaml.local
+
+## Generated at build time (do not commit)
+src/NutriIndex.Web/wwwroot/build.js

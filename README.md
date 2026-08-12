@@ -1,15 +1,11 @@
 # NutriIndex
 
-A personal side project for answering a simple question at the supermarket: **how much am I paying per unit of nutrition?**
-
 Point the camera at a barcode (or type it in), enter what you paid, and get two indices in EUR:
 
 - cost per 100 kcal
 - cost per 10g protein
 
 Product nutrition comes from [Open Food Facts](https://world.openfoodfacts.org/). When data is missing, you can fill in kcal and protein manually.
-
-Not a nutrition database — a quick calculator for price-per-nutrition while shopping.
 
 ## Architecture
 
@@ -53,7 +49,7 @@ dotnet run --project src/NutriIndex.Web
 
 Open `http://localhost:5210`. The web app calls the API at `http://localhost:5234` (see `src/NutriIndex.Web/wwwroot/appsettings.Development.json`).
 
-**Try it:** tap **Scan barcode** or enter `3017620422003` (Nutella), then set price and quantity.
+
 
 ## Tests
 

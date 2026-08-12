@@ -19,4 +19,6 @@ builder.Services.AddScoped(_ => new HttpClient
 builder.Services.AddScoped<NutriIndexApiClient>();
 builder.Services.AddScoped<BarcodeScannerService>();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+Console.WriteLine($"[NutriIndex] WASM started · build {AppBuildInfo.BuildId}");
+await host.RunAsync();

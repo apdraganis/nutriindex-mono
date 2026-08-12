@@ -115,6 +115,7 @@
     private string? _calculationError;
     private ProductInfo? _product;
     private Indices? _indices;
+    private DotNetObjectReference<Index>? _scannerRef;
 
     private decimal _price;
     private decimal _quantityG = 100;
@@ -123,8 +124,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && _product is not null)
-            await RecalculateAsync();
+        if (firstRender)
+        {
+            _scannerRef = DotNetObjectReference.Create(this);
+            if (_product is not null)
+                await RecalculateAsync();
+        }
     }
 
     private async Task StartScanAsync()
@@ -132,7 +137,7 @@
         _error = null;
         try
         {
-            await Scanner.StartAsync("barcode-video", OnBarcodeScannedAsync);
+            await Scanner.StartAsync("barcode-video", _scannerRef!);
             _scanning = true;
         }
         catch (Exception ex)
@@ -150,11 +155,20 @@
         _scanning = false;
     }
 
-    private async Task OnBarcodeScannedAsync(string barcode)
+    [JSInvokable]
+    public void OnBarcodeDetected(string barcode)
     {
-        _barcode = barcode;
-        await StopScanAsync();
-        await LookupProductAsync();
+        // Return immediately to JS so camera teardown is not nested with the
+        // HTTP lookup (Blazor WASM HTTP also uses JS interop and can stall).
+        _ = InvokeAsync(async () =>
+        {
+            Console.WriteLine($"[NutriIndex] barcode received · {barcode}");
+            _barcode = barcode;
+            _scanning = false;
+            StateHasChanged();
+            await LookupProductAsync();
+            StateHasChanged();
+        });
     }
 
     private async Task LookupProductAsync()
@@ -229,6 +243,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        await Scanner.DisposeAsync();
+        await Scanner.StopAsync();
+        _scannerRef?.Dispose();
     }
 }

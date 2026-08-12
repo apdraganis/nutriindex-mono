@@ -1,0 +1,27 @@
+<Project>
+  <Target Name="SetNutriIndexBuildMetadata" BeforeTargets="BeforeBuild">
+    <Exec Command="git rev-parse --short HEAD" StandardOutputImportance="Low" IgnoreExitCode="True">
+      <Output TaskParameter="ConsoleOutput" ItemName="GitCommitOutput" />
+    </Exec>
+
+    <PropertyGroup>
+      <GitCommitShort>@(GitCommitOutput-&gt;Trim())</GitCommitShort>
+      <GitCommitShort Condition="'$(GitCommitShort)' == ''">nogit</GitCommitShort>
+      <BuildTimestampUtc>$([System.DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"))</BuildTimestampUtc>
+      <NutriIndexBuildId>$(GitCommitShort)@$(BuildTimestampUtc)</NutriIndexBuildId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>NutriIndex.BuildId</_Parameter1>
+        <_Parameter2>$(NutriIndexBuildId)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+
+    <WriteLinesToFile
+      Condition="'$(MSBuildProjectName)' == 'NutriIndex.Web'"
+      File="$(MSBuildProjectDirectory)/wwwroot/build.js"
+      Lines="window.__NUTRIINDEX_BUILD__={&quot;id&quot;:&quot;$(NutriIndexBuildId)&quot;,&quot;assetVersion&quot;:&quot;$(BuildTimestampUtc)&quot;};console.info('[NutriIndex] assets', window.__NUTRIINDEX_BUILD__);"
+      Overwrite="true" />
+  </Target>
+</Project>

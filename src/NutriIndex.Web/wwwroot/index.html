@@ -28,8 +28,36 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+    <script src="build.js"></script>
+    <script>
+        (function () {
+            var host = location.hostname;
+            if (host !== "localhost" && host !== "127.0.0.1") {
+                return;
+            }
+
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function (regs) {
+                    regs.forEach(function (reg) { reg.unregister(); });
+                });
+            }
+
+            if ("caches" in window) {
+                caches.keys().then(function (keys) {
+                    keys.forEach(function (key) { caches.delete(key); });
+                });
+            }
+        })();
+    </script>
     <script src="lib/zxing-browser.min.js"></script>
-    <script src="js/barcode.js"></script>
+    <script>
+        (function () {
+            var version = (window.__NUTRIINDEX_BUILD__ && window.__NUTRIINDEX_BUILD__.assetVersion) || Date.now();
+            var script = document.createElement("script");
+            script.src = "js/barcode.js?v=" + encodeURIComponent(version);
+            document.head.appendChild(script);
+        })();
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 
