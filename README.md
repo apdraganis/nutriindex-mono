@@ -9,7 +9,7 @@ Product nutrition comes from [Open Food Facts](https://world.openfoodfacts.org/)
 
 ## Architecture
 
-Single-repo .NET 7 monolith with three projects:
+Single-repo .NET 10 monolith with three projects:
 
 | Project | Role |
 |---------|------|
@@ -31,7 +31,7 @@ Open Food Facts API
 
 ## Prerequisites
 
-- [.NET 7 SDK](https://dotnet.microsoft.com/download/dotnet/7.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 
 ## Run locally
 
