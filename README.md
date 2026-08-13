@@ -73,9 +73,3 @@ Open `http://localhost:8080`.
 Barcode scanning uses the device camera via `getUserMedia`. Browsers only allow that on **secure contexts** — `https://` or `http://localhost`. If you deploy without HTTPS, the scanner will fail and manual entry still works.
 
 The app is installable as a PWA (`manifest.json`, service worker). Icons and offline shell are included; product lookup still needs network access.
-
-## Roadmap
-
-- Persist scans per user (SQLite)
-- History and rankings
-- Better handling of incomplete Open Food Facts data

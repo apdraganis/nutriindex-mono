@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build & test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "7.0.x"
+
+      - name: Restore
+        run: dotnet restore NutriIndex.sln
+
+      - name: Build
+        run: dotnet build NutriIndex.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test NutriIndex.sln --configuration Release --no-build --verbosity normal
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t nutriindex:ci .
