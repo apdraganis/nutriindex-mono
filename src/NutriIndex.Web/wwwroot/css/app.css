@@ -88,6 +88,14 @@ html, body {
     flex: 1;
 }
 
+.inline select {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+}
+
 .btn {
     border: none;
     background: var(--accent);

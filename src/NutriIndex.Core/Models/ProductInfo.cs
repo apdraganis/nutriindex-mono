@@ -4,5 +4,7 @@ public record ProductInfo(
     string Barcode,
     string Name,
     string? ImageUrl,
-    decimal? DefaultQuantityG,
-    NutritionPer100g? Nutrition);
+    decimal? DefaultQuantity,
+    QuantityUnit? DefaultQuantityUnit,
+    NutritionFacts? NutritionPer100g,
+    NutritionFacts? NutritionPer100ml);

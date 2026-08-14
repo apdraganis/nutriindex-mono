@@ -43,31 +43,33 @@ public class OpenFoodFactsClient : IOpenFoodFactsClient
             return null;
 
         var product = payload.Product;
-        var nutrition = TryGetNutrition(product.Nutriments);
+        var parsedQuantity = QuantityParser.Parse(product.Quantity);
 
         return new ProductInfo(
             Barcode: barcode,
             Name: product.ProductName ?? product.GenericName ?? "Unknown product",
             ImageUrl: product.ImageUrl,
-            DefaultQuantityG: QuantityParser.ParseGrams(product.Quantity),
-            Nutrition: nutrition);
+            DefaultQuantity: parsedQuantity?.Value,
+            DefaultQuantityUnit: parsedQuantity?.Unit,
+            NutritionPer100g: TryGetNutrition(
+                product.Nutriments?.EnergyKcal100g,
+                product.Nutriments?.EnergyKj100g,
+                product.Nutriments?.Proteins100g),
+            NutritionPer100ml: TryGetNutrition(
+                product.Nutriments?.EnergyKcal100ml,
+                product.Nutriments?.EnergyKj100ml,
+                product.Nutriments?.Proteins100ml));
     }
 
-    private static NutritionPer100g? TryGetNutrition(OffNutriments? nutriments)
+    private static NutritionFacts? TryGetNutrition(decimal? kcal, decimal? energyKj, decimal? protein)
     {
-        if (nutriments is null)
-            return null;
-
-        var kcal = nutriments.EnergyKcal100g;
-        if (kcal is null or <= 0 && nutriments.EnergyKj100g is > 0)
-            kcal = nutriments.EnergyKj100g / 4.184m;
-
-        var protein = nutriments.Proteins100g;
+        if (kcal is null or <= 0 && energyKj is > 0)
+            kcal = energyKj / 4.184m;
 
         if (kcal is null or <= 0 || protein is null or <= 0)
             return null;
 
-        return new NutritionPer100g(kcal.Value, protein.Value);
+        return new NutritionFacts(kcal.Value, protein.Value);
     }
 
     private sealed class OffProductResponse
@@ -103,5 +105,14 @@ public class OpenFoodFactsClient : IOpenFoodFactsClient
 
         [JsonPropertyName("proteins_100g")]
         public decimal? Proteins100g { get; init; }
+
+        [JsonPropertyName("energy-kcal_100ml")]
+        public decimal? EnergyKcal100ml { get; init; }
+
+        [JsonPropertyName("energy-kj_100ml")]
+        public decimal? EnergyKj100ml { get; init; }
+
+        [JsonPropertyName("proteins_100ml")]
+        public decimal? Proteins100ml { get; init; }
     }
 }

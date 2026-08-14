@@ -1,14 +1,15 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using NutriIndex.Core.Models;
 
 namespace NutriIndex.Core.Services;
 
 public static partial class QuantityParser
 {
-    [GeneratedRegex(@"(\d+(?:[.,]\d+)?)\s*(g|ml)\b", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b", RegexOptions.IgnoreCase)]
     private static partial Regex QuantityRegex();
 
-    public static decimal? ParseGrams(string? quantity)
+    public static ParsedQuantity? Parse(string? quantity)
     {
         if (string.IsNullOrWhiteSpace(quantity))
             return null;
@@ -21,6 +22,14 @@ public static partial class QuantityParser
         if (!decimal.TryParse(valueText, NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
             return null;
 
-        return value;
+        var unit = match.Groups[2].Value.ToLowerInvariant();
+        return unit switch
+        {
+            "kg" => new ParsedQuantity(value * 1000m, QuantityUnit.G),
+            "g" => new ParsedQuantity(value, QuantityUnit.G),
+            "l" => new ParsedQuantity(value * 1000m, QuantityUnit.Ml),
+            "ml" => new ParsedQuantity(value, QuantityUnit.Ml),
+            _ => null
+        };
     }
 }
