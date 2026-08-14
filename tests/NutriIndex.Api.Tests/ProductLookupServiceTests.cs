@@ -102,7 +102,7 @@ public class ProductLookupServiceTests
     }
 
     private static ProductInfo SampleProduct(string barcode) =>
-        new(barcode, "Test product", null, 100, new NutritionPer100g(200, 10));
+        new(barcode, "Test product", null, 100, QuantityUnit.G, new NutritionFacts(200, 10), null);
 
     private sealed class FakeOpenFoodFactsClient : IOpenFoodFactsClient
     {

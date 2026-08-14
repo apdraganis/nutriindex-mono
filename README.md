@@ -3,9 +3,9 @@
 Point the camera at a barcode (or type it in), enter what you paid, and get two indices in EUR:
 
 - cost per 100 kcal
-- cost per 10g protein
+- cost per 100g protein
 
-Product nutrition comes from [Open Food Facts](https://world.openfoodfacts.org/). When data is missing, you can fill in kcal and protein manually.
+Product nutrition comes from [Open Food Facts](https://world.openfoodfacts.org/). Solids use **per 100g** values; liquids use **per 100ml** when the pack is in ml/L. When data is missing, you can fill in kcal and protein manually.
 
 ## Architecture
 

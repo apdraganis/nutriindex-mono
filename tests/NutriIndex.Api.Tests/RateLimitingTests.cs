@@ -36,9 +36,10 @@ public class RateLimitingTests
         var payload = new
         {
             priceEur = 2.5m,
-            quantityG = 500m,
-            kcalPer100g = 400m,
-            proteinPer100g = 20m
+            quantity = 500m,
+            unit = "g",
+            kcalPer100 = 400m,
+            proteinPer100 = 20m
         };
 
         var first = await client.PostAsJsonAsync("/api/calculate", payload);

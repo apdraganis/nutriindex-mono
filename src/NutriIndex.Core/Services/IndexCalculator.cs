@@ -4,10 +4,10 @@ namespace NutriIndex.Core.Services;
 
 public static class IndexCalculator
 {
-    public static Indices Calculate(Purchase purchase, NutritionPer100g nutrition)
+    public static Indices Calculate(Purchase purchase, NutritionFacts nutrition)
     {
-        var totalKcal = nutrition.Kcal * purchase.QuantityG / 100m;
-        var totalProteinG = nutrition.ProteinG * purchase.QuantityG / 100m;
+        var totalKcal = nutrition.Kcal * purchase.Quantity / 100m;
+        var totalProteinG = nutrition.ProteinG * purchase.Quantity / 100m;
 
         if (totalKcal <= 0)
             throw new ArgumentException("Total kcal must be greater than zero.", nameof(nutrition));
@@ -17,11 +17,11 @@ public static class IndexCalculator
 
         return new Indices(
             EurPer100Kcal: purchase.PriceEur / totalKcal * 100m,
-            EurPer10gProtein: purchase.PriceEur / totalProteinG * 10m);
+            EurPer100gProtein: purchase.PriceEur / totalProteinG * 100m);
     }
 
     public static Indices Calculate(CalculateRequest request) =>
         Calculate(
-            new Purchase(request.PriceEur, request.QuantityG),
-            new NutritionPer100g(request.KcalPer100g, request.ProteinPer100g));
+            new Purchase(request.PriceEur, request.Quantity, request.Unit),
+            new NutritionFacts(request.KcalPer100, request.ProteinPer100));
 }
