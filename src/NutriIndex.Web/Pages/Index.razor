@@ -8,7 +8,7 @@
 <div class="page">
     <header class="hero">
         <h1>NutriIndex</h1>
-        <p>Scan a product, enter what you paid, see cost per 100 kcal and per 10g protein.</p>
+        <p>Scan a product, enter what you paid, see cost per 100 kcal and per 100g protein.</p>
     </header>
 
     <section class="card">
@@ -67,23 +67,29 @@
             </div>
 
             <div class="field">
-                <label for="quantity">Quantity (g)</label>
-                <input id="quantity" type="number" step="1" min="1" value="@_quantityG" @oninput="e => OnDecimalInput(e, v => _quantityG = v)" />
+                <label for="quantity">Quantity</label>
+                <div class="inline">
+                    <input id="quantity" type="number" step="1" min="1" value="@_quantity" @oninput="e => OnDecimalInput(e, v => _quantity = v)" />
+                    <select id="unit" value="@UnitValue" @onchange="OnUnitChangedAsync">
+                        <option value="g">g</option>
+                        <option value="ml">ml</option>
+                    </select>
+                </div>
             </div>
 
             <div class="field">
-                <label for="kcal">Kcal per 100g</label>
-                <input id="kcal" type="number" step="0.1" min="0" value="@_kcalPer100g" @oninput="e => OnDecimalInput(e, v => _kcalPer100g = v)" />
+                <label for="kcal">Kcal per @_basisLabel</label>
+                <input id="kcal" type="number" step="0.1" min="0" value="@_kcalPer100" @oninput="e => OnDecimalInput(e, v => _kcalPer100 = v)" />
             </div>
 
             <div class="field">
-                <label for="protein">Protein per 100g (g)</label>
-                <input id="protein" type="number" step="0.1" min="0" value="@_proteinPer100g" @oninput="e => OnDecimalInput(e, v => _proteinPer100g = v)" />
+                <label for="protein">Protein per @_basisLabel</label>
+                <input id="protein" type="number" step="0.1" min="0" value="@_proteinPer100" @oninput="e => OnDecimalInput(e, v => _proteinPer100 = v)" />
             </div>
 
-            @if (_product.Nutrition is null)
+            @if (!HasMatchingNutrition)
             {
-                <p class="warning">Nutrition data missing — enter kcal and protein manually.</p>
+                <p class="warning">No nutrition for @_basisLabel — enter kcal and protein manually.</p>
             }
         </section>
 
@@ -95,8 +101,8 @@
                     <span class="value">€@_indices.EurPer100Kcal.ToString("0.000")</span>
                 </div>
                 <div class="result-card">
-                    <span class="label">Cost per 10g protein</span>
-                    <span class="value">€@_indices.EurPer10gProtein.ToString("0.000")</span>
+                    <span class="label">Cost per 100g protein</span>
+                    <span class="value">€@_indices.EurPer100gProtein.ToString("0.000")</span>
                 </div>
             </section>
         }
@@ -118,9 +124,16 @@
     private DotNetObjectReference<Index>? _scannerRef;
 
     private decimal _price;
-    private decimal _quantityG = 100;
-    private decimal _kcalPer100g;
-    private decimal _proteinPer100g;
+    private decimal _quantity = 100;
+    private QuantityUnit _unit = QuantityUnit.G;
+    private decimal _kcalPer100;
+    private decimal _proteinPer100;
+
+    private string UnitValue => _unit == QuantityUnit.Ml ? "ml" : "g";
+    private string _basisLabel => _unit == QuantityUnit.Ml ? "100ml" : "100g";
+
+    private bool HasMatchingNutrition =>
+        _product is not null && NutritionForUnit(_product, _unit) is not null;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -193,9 +206,7 @@
                 return;
             }
 
-            _quantityG = _product.DefaultQuantityG ?? 100m;
-            _kcalPer100g = _product.Nutrition?.Kcal ?? 0m;
-            _proteinPer100g = _product.Nutrition?.ProteinG ?? 0m;
+            ApplyProductDefaults(_product);
             await RecalculateAsync();
         }
         catch (Exception)
@@ -208,21 +219,57 @@
         }
     }
 
+    private void ApplyProductDefaults(ProductInfo product)
+    {
+        _unit = product.DefaultQuantityUnit
+            ?? (product.NutritionPer100ml is not null && product.NutritionPer100g is null
+                ? QuantityUnit.Ml
+                : QuantityUnit.G);
+        _quantity = product.DefaultQuantity ?? 100m;
+
+        var nutrition = NutritionForUnit(product, _unit);
+        _kcalPer100 = nutrition?.Kcal ?? 0m;
+        _proteinPer100 = nutrition?.ProteinG ?? 0m;
+    }
+
+    private async Task OnUnitChangedAsync(ChangeEventArgs e)
+    {
+        _unit = string.Equals(e.Value?.ToString(), "ml", StringComparison.OrdinalIgnoreCase)
+            ? QuantityUnit.Ml
+            : QuantityUnit.G;
+
+        if (_product is not null)
+        {
+            var nutrition = NutritionForUnit(_product, _unit);
+            if (nutrition is not null)
+            {
+                _kcalPer100 = nutrition.Kcal;
+                _proteinPer100 = nutrition.ProteinG;
+            }
+        }
+
+        await RecalculateAsync();
+    }
+
+    private static NutritionFacts? NutritionForUnit(ProductInfo product, QuantityUnit unit) =>
+        unit == QuantityUnit.Ml ? product.NutritionPer100ml : product.NutritionPer100g;
+
     private async Task RecalculateAsync()
     {
         _calculationError = null;
         _indices = null;
 
-        if (_product is null || _price <= 0 || _quantityG <= 0 || _kcalPer100g <= 0 || _proteinPer100g <= 0)
+        if (_product is null || _price <= 0 || _quantity <= 0 || _kcalPer100 <= 0 || _proteinPer100 <= 0)
             return;
 
         try
         {
             _indices = await Api.CalculateAsync(new CalculateRequest(
                 _price,
-                _quantityG,
-                _kcalPer100g,
-                _proteinPer100g));
+                _quantity,
+                _unit,
+                _kcalPer100,
+                _proteinPer100));
 
             if (_indices is null)
                 _calculationError = "Could not calculate indices.";

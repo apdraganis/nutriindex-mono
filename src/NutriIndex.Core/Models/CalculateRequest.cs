@@ -2,6 +2,7 @@ namespace NutriIndex.Core.Models;
 
 public record CalculateRequest(
     decimal PriceEur,
-    decimal QuantityG,
-    decimal KcalPer100g,
-    decimal ProteinPer100g);
+    decimal Quantity,
+    QuantityUnit Unit,
+    decimal KcalPer100,
+    decimal ProteinPer100);
