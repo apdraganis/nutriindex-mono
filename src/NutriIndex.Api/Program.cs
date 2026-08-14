@@ -25,12 +25,6 @@ builder.Services.AddHttpClient<OpenFoodFactsClient>(client =>
     client.DefaultRequestHeaders.UserAgent.ParseAdd("NutriIndex/1.0 (MVP; contact: dev@local)");
 });
 
-var rateLimiting = builder.Configuration.GetSection("RateLimiting");
-var productsLimit = rateLimiting.GetSection("Products").GetValue("PermitLimit", 30);
-var productsWindow = rateLimiting.GetSection("Products").GetValue("WindowSeconds", 60);
-var calculateLimit = rateLimiting.GetSection("Calculate").GetValue("PermitLimit", 60);
-var calculateWindow = rateLimiting.GetSection("Calculate").GetValue("WindowSeconds", 60);
-
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -46,24 +40,36 @@ builder.Services.AddRateLimiter(options =>
     };
 
     options.AddPolicy("products", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
+    {
+        var configuration = httpContext.RequestServices.GetRequiredService<IConfiguration>();
+        var permitLimit = configuration.GetValue("RateLimiting:Products:PermitLimit", 30);
+        var windowSeconds = configuration.GetValue("RateLimiting:Products:WindowSeconds", 60);
+
+        return RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = productsLimit,
-                Window = TimeSpan.FromSeconds(productsWindow),
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromSeconds(windowSeconds),
                 QueueLimit = 0,
-            }));
+            });
+    });
 
     options.AddPolicy("calculate", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
+    {
+        var configuration = httpContext.RequestServices.GetRequiredService<IConfiguration>();
+        var permitLimit = configuration.GetValue("RateLimiting:Calculate:PermitLimit", 60);
+        var windowSeconds = configuration.GetValue("RateLimiting:Calculate:WindowSeconds", 60);
+
+        return RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = calculateLimit,
-                Window = TimeSpan.FromSeconds(calculateWindow),
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromSeconds(windowSeconds),
                 QueueLimit = 0,
-            }));
+            });
+    });
 });
 
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>();
@@ -129,3 +135,5 @@ app.MapFallbackToFile("index.html");
 Console.WriteLine($"[NutriIndex] API started · build {BuildInfo.BuildId}");
 
 app.Run();
+
+public partial class Program;
