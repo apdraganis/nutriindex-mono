@@ -6,7 +6,12 @@ using NutriIndex.Core.Services;
 
 namespace NutriIndex.Api.Services;
 
-public class OpenFoodFactsClient
+public interface IOpenFoodFactsClient
+{
+    Task<ProductInfo?> GetProductAsync(string barcode, CancellationToken cancellationToken = default);
+}
+
+public class OpenFoodFactsClient : IOpenFoodFactsClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
