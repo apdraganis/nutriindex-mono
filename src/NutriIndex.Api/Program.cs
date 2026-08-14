@@ -2,7 +2,6 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Components.WebAssembly.Server;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Caching.Memory;
 using NutriIndex.Api.Services;
 using NutriIndex.Core;
 using NutriIndex.Core.Models;
@@ -19,11 +18,12 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 builder.Services.AddMemoryCache();
-builder.Services.AddHttpClient<OpenFoodFactsClient>(client =>
+builder.Services.AddHttpClient<IOpenFoodFactsClient, OpenFoodFactsClient>(client =>
 {
     client.BaseAddress = new Uri("https://world.openfoodfacts.org/");
     client.DefaultRequestHeaders.UserAgent.ParseAdd("NutriIndex/1.0 (MVP; contact: dev@local)");
 });
+builder.Services.AddSingleton<ProductLookupService>();
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -96,22 +96,15 @@ app.UseRateLimiter();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
-app.MapGet("/api/products/{barcode}", async (string barcode, OpenFoodFactsClient client, IMemoryCache cache) =>
+app.MapGet("/api/products/{barcode}", async (string barcode, ProductLookupService products, CancellationToken cancellationToken) =>
 {
     if (string.IsNullOrWhiteSpace(barcode))
         return Results.BadRequest(new { error = "Barcode is required." });
 
-    var normalizedBarcode = barcode.Trim();
-    var cacheKey = $"product:{normalizedBarcode}";
-
-    if (cache.TryGetValue(cacheKey, out ProductInfo? cached) && cached is not null)
-        return Results.Ok(cached);
-
-    var product = await client.GetProductAsync(normalizedBarcode);
+    var product = await products.GetProductAsync(barcode.Trim(), cancellationToken);
     if (product is null)
         return Results.NotFound(new { error = "Product not found." });
 
-    cache.Set(cacheKey, product, TimeSpan.FromHours(24));
     return Results.Ok(product);
 }).RequireRateLimiting("products");
 
